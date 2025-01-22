@@ -1,4 +1,5 @@
 import mediapipe as mp
+import math
 import cv2
 
 mp_hands = mp.solutions.hands
@@ -22,13 +23,16 @@ class HandTracker:
           frame, hand_landmarks, mp_hands.HAND_CONNECTIONS
         )
 
-        self.recognize_gestures(hand_landmarks)
+        # self.recognize_gestures(hand_landmarks)
 
     return frame, results
   
   def recognize_gestures(self, hand_landmarks):
     if self.is_open_hand(hand_landmarks.landmark):
       print("Open hand")
+
+    if self.is_pinch(hand_landmarks.landmark):
+      print("Click")
 
     if self.is_fist(hand_landmarks.landmark):
       print("Closed hand")
@@ -46,6 +50,18 @@ class HandTracker:
 
     return open_fingers == 5
   
+  def is_pinch(self, landmarks):
+    thumb_tip = landmarks[4]
+    index_tip = landmarks[8]
+
+    distance = math.sqrt(
+      (thumb_tip.x - index_tip.x) ** 2 +
+      (thumb_tip.y - index_tip.y) ** 2 +
+      (thumb_tip.z - index_tip.z) ** 2
+    )
+
+    return distance < 0.05
+
   def is_fist(self, landmarks):
     tips = [4, 8, 12, 16, 20]
     base_joints = [1, 5, 9, 13, 17]
