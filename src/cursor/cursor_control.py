@@ -1,4 +1,6 @@
 import pyautogui
+import time
+import cv2
 
 class CursorControl:
   def __init__(self):
@@ -8,6 +10,8 @@ class CursorControl:
     self.prev_x = 0
     self.prev_y = 0
     self.alpha = 0.5
+    self.pinch_start_time = None
+    self.is_holding = False       # Long hold flag
 
   def calibrate_vertical_range(self, landmarks):
     self.min_y = min(landmarks, key=lambda lm: lm.y).y
@@ -43,3 +47,30 @@ class CursorControl:
 
   def click(self):
     pyautogui.click()
+
+  def right_click(self):
+    pyautogui.rightClick()
+
+  def handle_pinch(self, is_pinch_active, landmarks):
+    if is_pinch_active:
+      if self.pinch_start_time is None:
+        self.pinch_start_time = time.time()
+        self.is_holding = False
+      elif time.time() - self.pinch_start_time > 1:
+        if not self.is_holding:
+          print("Starting long press")
+          pyautogui.mouseDown()
+          self.is_holding = True
+
+      self.move_cursor_with_hand(landmarks)
+    else:
+      if self.is_holding:
+        print("Releasing long press")
+        pyautogui.mouseUp()
+        # self.is_holding = False
+
+      self.pinch_start_time = None
+      self.is_holding = False
+
+  # def scroll(self):
+  #   pyautogui.scroll(-50)

@@ -1,3 +1,4 @@
+# from cursor.cursor_control import CursorControl
 import mediapipe as mp
 import math
 import cv2
@@ -37,8 +38,11 @@ class HandTracker:
     if self.is_fist(hand_landmarks.landmark):
       print("Closed hand")
 
-    if self.is_custom_gesture(hand_landmarks.landmark):
-      print("Test")
+    if self.is_pinch_right(hand_landmarks.landmark):
+      print("Right click")
+
+    if self.is_bunch(hand_landmarks.landmark):
+      print("Bunch")
 
   def is_open_hand(self, landmarks):
     tips = [4, 8, 12, 16, 20]
@@ -60,48 +64,51 @@ class HandTracker:
       (thumb_tip.z - index_tip.z) ** 2
     )
 
-    return distance < 0.05
+    return distance < 0.04
+  
+  def is_pinch_right(self, landmarks):
+    thumb_tip = landmarks[4]
+    index_tip = landmarks[12]
+
+    distance = math.sqrt(
+      (thumb_tip.x - index_tip.x) ** 2 +
+      (thumb_tip.y - index_tip.y) ** 2 +
+      (thumb_tip.z - index_tip.z) ** 2
+    )
+
+    return distance < 0.03
+  
+  def is_bunch(self, landmarks):
+    thumb_tip = landmarks[4]
+    index_tip = landmarks[8]
+    middle_tip = landmarks[12]
+    ring_tip = landmarks[16]
+    pinky_tip = landmarks[20]
+
+    avg_x = (thumb_tip.x + index_tip.x + middle_tip.x + ring_tip.x + pinky_tip.x) / 5
+    avg_y = (thumb_tip.y + index_tip.y + middle_tip.y + ring_tip.y + pinky_tip.y) / 5
+    avg_z = (thumb_tip.z + index_tip.z + middle_tip.z + ring_tip.z + pinky_tip.z) / 5
+
+    max_distance = 0
+    for tip in [thumb_tip, index_tip, middle_tip, ring_tip, pinky_tip]:
+      distance = math.sqrt(
+        (tip.x - avg_x) ** 2 +
+        (tip.y - avg_y) ** 2 +
+        (tip.z - avg_z) ** 2
+      )
+      max_distance = max(max_distance, distance)
+
+      return max_distance < 0.03
 
   def is_fist(self, landmarks):
-    tips = [4, 8, 12, 16, 20]
-    base_joints = [1, 5, 9, 13, 17]
+    tips = [8, 12, 16, 20]
+    base_joints = [5, 9, 13, 17]
     closed_fingers = 0
     for tip, base_joint in zip(tips, base_joints):
       if landmarks[tip].y > landmarks[base_joint].y:   # Fingertip below the joint
         closed_fingers += 1
 
-    return closed_fingers == 5
-  
-  def is_custom_gesture(self, landmarks):
-    open_fingers = 0
-    closed_fingers = 0
-
-    if landmarks[4].y < landmarks[1].y:
-      open_fingers += 1
-    else:
-      closed_fingers += 1
-
-    if landmarks[8].y > landmarks[5].y:
-      open_fingers += 1
-    else:
-      closed_fingers += 1
-
-    if landmarks[12].y > landmarks[9].y:
-      open_fingers += 1
-    else:
-      closed_fingers += 1
-
-    if landmarks[16].y > landmarks[13].y:
-      open_fingers += 1
-    else:
-      closed_fingers += 1
-
-    if landmarks[20].y > landmarks[17].y:
-      open_fingers += 1
-    else:
-      closed_fingers += 1
-
-    return open_fingers == 2 and closed_fingers == 3
+    return closed_fingers == 4
 
   def release(self):
     self.hands.close()

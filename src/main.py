@@ -25,8 +25,16 @@ def main():
           if tracker.is_open_hand(hand_landmarks.landmark):
             cursor.move_cursor_with_hand(hand_landmarks.landmark)
 
-          if tracker.is_pinch(hand_landmarks.landmark):
+          cursor.handle_pinch(tracker.is_pinch(hand_landmarks.landmark), hand_landmarks.landmark)
+
+          if tracker.is_pinch(hand_landmarks.landmark) and not cursor.is_holding:
             cursor.click()
+
+          if tracker.is_pinch_right(hand_landmarks.landmark):
+            cursor.right_click()
+          
+          # if tracker.is_fist(hand_landmarks.landmark):
+          #   cursor.scroll()
 
       camera.show_frame("Camera", frame)
 
