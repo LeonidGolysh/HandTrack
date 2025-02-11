@@ -72,5 +72,13 @@ class CursorControl:
       self.pinch_start_time = None
       self.is_holding = False
 
-  # def scroll(self):
-  #   pyautogui.scroll(-50)
+  def handle_scroll(self, landmarks):
+    wrist = landmarks[0]
+
+    screen_height = pyautogui.size()[1]
+    normalized_y = (wrist.y - self.min_y) / (self.max_y - self.min_y)
+
+    if normalized_y < 0.5:
+      pyautogui.scroll(100)
+    else:
+      pyautogui.scroll(-100)

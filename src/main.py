@@ -33,8 +33,8 @@ def main():
           if tracker.is_pinch_right(hand_landmarks.landmark):
             cursor.right_click()
           
-          # if tracker.is_fist(hand_landmarks.landmark):
-          #   cursor.scroll()
+          if tracker.is_fist(hand_landmarks.landmark):
+            cursor.handle_scroll(hand_landmarks.landmark)
 
       camera.show_frame("Camera", frame)
 
