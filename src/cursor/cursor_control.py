@@ -1,6 +1,7 @@
 import pyautogui
 import time
 import cv2
+import webbrowser
 
 class CursorControl:
   def __init__(self):
@@ -12,6 +13,9 @@ class CursorControl:
     self.alpha = 0.5
     self.pinch_start_time = None
     self.is_holding = False       # Long hold flag
+    self.direction_start_time = None      # To prevent multiple calls
+    self.last_navigation = None
+    self.is_easter_egg_detected = False
 
   def calibrate_vertical_range(self, landmarks):
     self.min_y = min(landmarks, key=lambda lm: lm.y).y
@@ -82,3 +86,39 @@ class CursorControl:
       pyautogui.scroll(100)
     else:
       pyautogui.scroll(-100)
+
+  def handle_navigation(self, tracker, landmarks):
+    if self.is_holding:
+      return 
+
+    direction = tracker.detect_index_finger_direction(landmarks)
+
+    if direction == "left":
+      if self.direction_start_time is None:
+        self.direction_start_time = time.time()       # Start of motion recording
+      elif time.time() - self.direction_start_time > 1 and self.last_navigation != "left":       # Direction confirmation after 1 seconds
+        print("Go back")
+        pyautogui.hotkey('alt', 'left')
+        self.direction_start_time = None
+        self.last_navigation = "left"
+    
+    elif direction == "right":
+      if self.direction_start_time is None:
+        self.direction_start_time = time.time()
+        
+      elif time.time() - self.direction_start_time > 1 and self.last_navigation != "right":
+        print("Go forward")
+        pyautogui.hotkey('alt', 'right')
+        self.direction_start_time = None
+        self.last_navigation = "right"
+    else:
+      self.direction_start_time = None
+      self.last_navigation = None
+
+  def handle_easter_egg(self, tracker, landmarks):
+    if tracker.gesture_for_easter_egg(landmarks):
+      if not self.is_easter_egg_detected:
+        webbrowser.open("http://zenitbol.ru/_nw/171/43331998.jpg")
+        self.is_easter_egg_detected = True
+    else:
+      self.is_easter_egg_detected = False

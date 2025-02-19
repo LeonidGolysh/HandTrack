@@ -109,6 +109,24 @@ class HandTracker:
         closed_fingers += 1
 
     return closed_fingers == 4
+  
+  def detect_index_finger_direction(self, landmarks):
+    base_x = landmarks[5].x     # Base of the finger
+    tip_x = landmarks[8].x      # Fingertip
+
+    if tip_x < base_x - 0.05:
+      return "left"
+    elif tip_x > base_x + 0.05:
+      return "right"
+    return None
+
+  def gesture_for_easter_egg(self, landmarks):
+        return (
+            landmarks[12].y < landmarks[10].y and
+            landmarks[8].y > landmarks[6].y and
+            landmarks[16].y > landmarks[14].y and
+            landmarks[20].y > landmarks[18].y
+        )
 
   def release(self):
     self.hands.close()

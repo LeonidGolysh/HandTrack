@@ -25,6 +25,10 @@ def main():
           if tracker.is_open_hand(hand_landmarks.landmark):
             cursor.move_cursor_with_hand(hand_landmarks.landmark)
 
+          cursor.handle_easter_egg(tracker, hand_landmarks.landmark)
+
+          cursor.handle_navigation(tracker, hand_landmarks.landmark)
+
           cursor.handle_pinch(tracker.is_pinch(hand_landmarks.landmark), hand_landmarks.landmark)
 
           if tracker.is_pinch(hand_landmarks.landmark) and not cursor.is_holding:
