@@ -24,25 +24,7 @@ class HandTracker:
           frame, hand_landmarks, mp_hands.HAND_CONNECTIONS
         )
 
-        # self.recognize_gestures(hand_landmarks)
-
     return frame, results
-  
-  def recognize_gestures(self, hand_landmarks):
-    if self.is_open_hand(hand_landmarks.landmark):
-      print("Open hand")
-
-    if self.is_pinch(hand_landmarks.landmark):
-      print("Click")
-
-    if self.is_fist(hand_landmarks.landmark):
-      print("Closed hand")
-
-    if self.is_pinch_right(hand_landmarks.landmark):
-      print("Right click")
-
-    if self.is_bunch(hand_landmarks.landmark):
-      print("Bunch")
 
   def is_open_hand(self, landmarks):
     tips = [4, 8, 12, 16, 20]
@@ -121,12 +103,12 @@ class HandTracker:
     return None
 
   def gesture_for_easter_egg(self, landmarks):
-        return (
-            landmarks[12].y < landmarks[10].y and
-            landmarks[8].y > landmarks[6].y and
-            landmarks[16].y > landmarks[14].y and
-            landmarks[20].y > landmarks[18].y
-        )
+    return (
+        landmarks[12].y < landmarks[10].y and
+        landmarks[8].y > landmarks[6].y and
+        landmarks[16].y > landmarks[14].y and
+        landmarks[20].y > landmarks[18].y
+    )
 
   def release(self):
     self.hands.close()
