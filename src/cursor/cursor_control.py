@@ -27,9 +27,10 @@ class CursorControl:
 
   def move_cursor_with_hand(self, landmarks):
     if not self.is_calibrated:
-        raise ValueError("CursorControl is not calibrated. Call `calibrate_vertical_range` first.")
+      raise ValueError("CursorControl is not calibrated. Call `calibrate_vertical_range` first.")
 
     screen_width, screen_height = pyautogui.size()
+    speed_factor = max(0.1, min(self.cursor_speed, 5))
 
     wrist = landmarks[0]
 
@@ -40,9 +41,8 @@ class CursorControl:
     cursor_y = int(normalized_y * screen_height)
 
     # Motion smoothing
-    smoothed_x = self.prev_x + (cursor_x - self.prev_x) * (self.cursor_speed / 10) * self.alpha
-    smoothed_y = self.prev_y + (cursor_y - self.prev_y) * (self.cursor_speed / 10) * self.alpha
-
+    smoothed_x = self.prev_x + (cursor_x - self.prev_x) * self.alpha * (speed_factor / 5)
+    smoothed_y = self.prev_y + (cursor_y - self.prev_y) * self.alpha * (speed_factor / 5)
     # Limit cursor movement
     smoothed_x = max(1, min(smoothed_x, screen_width - 2))
     smoothed_y = max(1, min(smoothed_y, screen_height - 2))
