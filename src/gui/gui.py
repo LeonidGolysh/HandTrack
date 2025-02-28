@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QVBoxLayout
+from PyQt6.QtWidgets import QWidget, QVBoxLayout
 from PyQt6.QtGui import QPixmap, QImage
 from PyQt6.QtCore import QTimer
 from concurrent.futures import Future
@@ -6,6 +6,8 @@ from thread.thread_manager import ThreadManager
 from camera.camera_stream import CameraStream
 from hand_tracking.tracker import HandTracker
 from cursor.cursor_control import CursorControl
+from gui.video_widget import VideoWidget
+from gui.control_panel import ControlPanel
 import cv2
 import numpy as np
 
@@ -21,18 +23,16 @@ class HandTrackingGUI(QWidget):
     self.setWindowTitle("Hand Tracking Interface")
     self.setGeometry(100, 100, 800, 600)
 
-    self.video_label = QLabel(self)
-    self.start_button = QPushButton("Start", self)
-    self.stop_button = QPushButton("Stop", self)
+    self.video_widget = VideoWidget()
+    self.control_panel = ControlPanel(self.cursor)
 
     layout = QVBoxLayout()
-    layout.addWidget(self.video_label)
-    layout.addWidget(self.start_button)
-    layout.addWidget(self.stop_button)
+    layout.addWidget(self.video_widget)
+    layout.addWidget(self.control_panel)
     self.setLayout(layout)
 
-    self.start_button.clicked.connect(self.start_tracking)
-    self.stop_button.clicked.connect(self.stop_tracking)
+    self.control_panel.start_button.clicked.connect(self.start_tracking)
+    self.control_panel.stop_button.clicked.connect(self.stop_tracking)
 
     self.timer = QTimer()
     self.timer.timeout.connect(self.update_frame)
@@ -93,7 +93,7 @@ class HandTrackingGUI(QWidget):
     q_img = QImage(frame.data, width, height, bytes_per_line, QImage.Format.Format_RGB888)
     pixmap = QPixmap.fromImage(q_img)
 
-    self.video_label.setPixmap(pixmap)
+    self.video_widget.setPixmap(pixmap)
 
   def closeEvent(self, event):
     self.stop_tracking()

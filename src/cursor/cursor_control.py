@@ -3,7 +3,7 @@ import time
 import webbrowser
 
 class CursorControl:
-  def __init__(self):
+  def __init__(self, setting_manager):
     self.min_y = 0
     self.max_y = 1
     self.is_calibrated = False
@@ -15,6 +15,9 @@ class CursorControl:
     self.direction_start_time = None      # To prevent multiple calls
     self.last_navigation = None
     self.is_easter_egg_detected = False
+    self.settings = setting_manager
+    self.scroll_speed = self.settings.get_scroll_speed()
+    self.cursor_speed = self.settings.get_cursor_speed()
 
   def calibrate_vertical_range(self, landmarks):
     self.min_y = min(landmarks, key=lambda lm: lm.y).y
@@ -30,14 +33,15 @@ class CursorControl:
 
     wrist = landmarks[0]
 
+    normalized_x = 1 - wrist.x
     normalized_y = (wrist.y - self.min_y) / (self.max_y - self.min_y)
 
-    cursor_x = int((1 - wrist.x) * screen_width * 1.0)
+    cursor_x = int(normalized_x * screen_width)
     cursor_y = int(normalized_y * screen_height)
 
     # Motion smoothing
-    smoothed_x = self.prev_x + (cursor_x - self.prev_x) * self.alpha
-    smoothed_y = self.prev_y + (cursor_y - self.prev_y) * self.alpha
+    smoothed_x = self.prev_x + (cursor_x - self.prev_x) * (self.cursor_speed / 10) * self.alpha
+    smoothed_y = self.prev_y + (cursor_y - self.prev_y) * (self.cursor_speed / 10) * self.alpha
 
     # Limit cursor movement
     smoothed_x = max(1, min(smoothed_x, screen_width - 2))
@@ -47,6 +51,10 @@ class CursorControl:
 
     # Move cursor to new screen coordinate
     pyautogui.moveTo(smoothed_x, smoothed_y)
+
+  def update_cursor_speed(self, speed):
+    self.cursor_speed = speed
+    self.settings.set_cursor_speed(speed)
 
   def click(self):
     pyautogui.click()
@@ -82,9 +90,13 @@ class CursorControl:
     normalized_y = (wrist.y - self.min_y) / (self.max_y - self.min_y)
 
     if normalized_y < 0.5:
-      pyautogui.scroll(100)
+      pyautogui.scroll(self.scroll_speed)
     else:
-      pyautogui.scroll(-100)
+      pyautogui.scroll(-self.scroll_speed)
+
+  def update_scroll_speed(self, speed):
+    self.scroll_speed = speed
+    self.settings.set_scroll_speed(speed)
 
   def handle_navigation(self, tracker, landmarks):
     if self.is_holding:
