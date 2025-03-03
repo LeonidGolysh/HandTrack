@@ -2,26 +2,27 @@ import unittest
 import cv2
 import numpy as np
 from src.camera.camera_stream import CameraStream
+from unittest.mock import MagicMock, patch
 
 class TestCameraStream(unittest.TestCase):
-  def setUp(self):
-    self.camera = CameraStream()
 
-  def tearDown(self):
-    self.camera.release()
+  @patch('src.camera.camera_stream.cv2.VideoCapture')
+  def test_get_frame(self, mock_video_capture):
+    mock_cap = MagicMock()
+    mock_cap.isOpened.return_value = True
+    mock_cap.read.return_value = (True, np.zeros((480, 640, 3), dtype=np.uint8))
 
-  def test_camera_initialization(self):
-    self.assertIsInstance(self.camera.cap, cv2.VideoCapture)
+    mock_video_capture.return_value = mock_cap
 
-  def test_get_frame(self):
-    frame = self.camera.get_frame()
-    self.assertTrue(
-      frame is None or isinstance(frame, (np.ndarray, list, tuple))
-      )
+    camera_stream = CameraStream()
+    frame = camera_stream.get_frame()
 
-  def test_release_camera(self):
-    self.camera.release()
-    self.assertFalse(self.camera.cap.isOpened())
+    self.assertIsNotNone(frame)
+    self.assertIsInstance(frame, np.ndarray)
+    self.assertEqual(frame.shape, (480, 640, 3))
+
+    camera_stream.release()
+    mock_cap.release.assert_called_once()
 
 if __name__ == "__main__":
   unittest.main()
